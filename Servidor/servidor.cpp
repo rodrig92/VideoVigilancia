@@ -15,6 +15,8 @@ Servidor::Servidor (QWidget* parent) :
 Servidor::~Servidor ()
 {
     delete ui_;
+    //tcpSocket_ -> close ();
+    //tcpServer_ -> close ();
     if (tcpServer_ != NULL)
         delete tcpServer_;
     if (tcpSocket_ != NULL)
@@ -23,7 +25,8 @@ Servidor::~Servidor ()
 
 void Servidor::on_Escuchar_clicked ()
 {
-    tcpServer_ = new QTcpServer;
+    if (tcpServer_ == NULL)
+        tcpServer_ = new QTcpServer;
     tcpServer_ -> listen (ip_, port_);
     qDebug () << "listening... ";
     connect (tcpServer_, SIGNAL (newConnection ()), this, SLOT (gest_connect_in ()));
@@ -32,7 +35,8 @@ void Servidor::on_Escuchar_clicked ()
 void Servidor::gest_connect_in ()
 {
     qDebug ()<< "gest_conm";
-    tcpSocket_ = new QTcpSocket;
+    if (tcpSocket_ == NULL)
+        tcpSocket_ = new QTcpSocket;
     tcpSocket_ = tcpServer_ -> nextPendingConnection ();
     connect (tcpSocket_, SIGNAL (readyRead ()), this, SLOT (recive_and_play ()));
 }
@@ -75,7 +79,7 @@ void Servidor::recive_and_play ()
         qDebug () << "AQII";
     /*if (cabecera != NULL)
         delete cabecera;*/
-    connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
+   // connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
 
 }
 

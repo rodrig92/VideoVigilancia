@@ -16,14 +16,10 @@ Cliente::Cliente (QWidget* parent) :
 Cliente::~Cliente ()
 {
     delete ui_;
-    if (tcpSocket_ != NULL) {
+    if (tcpSocket_ != NULL)
         delete tcpSocket_;
-        qDebug () << "Borrado tcpSo";
-    }
-    if (camera_ != NULL) {
+    if (camera_ != NULL)
         delete camera_;
-        qDebug () << "Borrado cama";
-    }
     if (frames_ != NULL)
         delete frames_;
 }
@@ -31,26 +27,40 @@ Cliente::~Cliente ()
 
 void Cliente::on_pushButton_clicked ()
 {
-    tcpSocket_ = new QTcpSocket (this);
+    qDebug () << "aqiiiiiiiiii";
+     if (tcpSocket_ == NULL)
+        tcpSocket_ = new QTcpSocket (this);
     tcpSocket_ -> connectToHost ("127.0.0.1", 5010)/*(ip_, port_)*/;
+
     connect (tcpSocket_, SIGNAL (connected ()), this, SLOT (capture ()));    //mientras no conecte no reproduce
 }
 
 void Cliente::capture ()
 {
     QList<QByteArray> devices = QCamera::availableDevices ();
-    /*qDebug () << "Capturando de... "
-             << QCamera::deviceDescription (devices[selCam_]);*/
-    camera_ = new QCamera;
-    frames_ = new Frames;
-    camera_ -> setViewfinder (frames_);
-    camera_ -> setCaptureMode (QCamera::CaptureViewfinder);
-    camera_ -> start ();
-    connect (frames_, SIGNAL (rep (const QImage&)), this, SLOT (send_and_play (const QImage&)));
+    //qDebug () << "Capturando de... ";
+    //         << QCamera::deviceDescription (devices[selCam_]);*/
+    if (tcpSocket_ -> state () == 0){
+        qDebug () << "Estado: " << tcpSocket_ -> state ();
+        emit desconexion();
+        //camera_ -> stop ();
+        connect (this, SIGNAL (desconexion ()), this, SLOT (on_Desconectar_clicked ()));
+    }
+    else {
+        if (camera_ == NULL)
+            camera_ = new QCamera;
+        if (frames_ == NULL)
+            frames_ = new Frames;
+        camera_ -> setViewfinder (frames_);
+        camera_ -> setCaptureMode (QCamera::CaptureViewfinder);
+        camera_ -> start ();
+        connect (frames_, SIGNAL (rep (const QImage&)), this, SLOT (send_and_play (const QImage&)));
+    }
 }
 
 void Cliente::send_and_play (const QImage& image)
 {
+
     QImage aux = image;
     /*
      * aprender fondo
@@ -60,13 +70,37 @@ void Cliente::send_and_play (const QImage& image)
     QBuffer buffer;
     aux.save (&buffer, "jpg");
     buffer.buffer().prepend("R_O_Z_I_");          //incluimos una cabecera
+    ui_ -> label -> clear();
 
-    tcpSocket_ -> write (buffer.buffer().constData(), buffer.buffer().size());
-    tcpSocket_-> connected ();
-    ui_ -> label -> setPixmap (QPixmap::fromImage (image));
+    if (tcpSocket_ -> state () != 0) {
+        tcpSocket_ -> write (buffer.buffer().constData(), buffer.buffer().size());
+        tcpSocket_ -> connected ();
+       // qDebug () << "alaaaaaaaaa";
+        ui_ -> label -> setPixmap (QPixmap::fromImage (image));
+    }
+    else {
+        ui_ -> label -> setText("intentando conectar....");
+        emit desconexion();
+        connect (this, SIGNAL (desconexion ()), this, SLOT (on_pushButton_clicked ()));
+    }
+
+}
+
+void Cliente::background (QImage& fondo)
+{
+   /* for (int i = 0; i < fondo.height (); i++)
+        for (int j = 0; j < fondo.width (); j++)
+*/
+
 }
 
 void Cliente::on_Desconectar_clicked()
 {
-    tcpSocket_->disconnected();
+    //tcpSocket_->disconnected();
+    qDebug () << "Conexion perdida";
+    camera_ -> stop ();
+
+
+    /* frames_ = NULL;
+    camera_ = NULL;*/
 }
