@@ -7,6 +7,7 @@
 #include <QMovie>
 #include <QSettings>
 #include <string>
+#include <stdint.h>
 
 namespace Ui {
 class Servidor;

@@ -7,6 +7,7 @@
 #include <QCamera>
 #include <string>
 #include "frames.h"
+#include <stdint.h>
 
 namespace Ui {
 class Cliente;
