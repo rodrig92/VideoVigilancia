@@ -53,45 +53,8 @@ void Cliente::send_and_play (const QImage& image)
 {
     QImage imx;
     imx=image;
-     for(int i=1;i<imx.height()-1;i++){
-         for(int j=1;j<imx.width()-1;j++){
+    conversion(imx);
 
-                // |1-2-3|  -->  |5-7-4|
-                // |4-5-6|  -->  |3-8-1|
-                // |7-8-9|  -->  |9-6-2|
-                // TERCIO SUPERIOR
-                if((i<imx.height()/3)&&(j<imx.width()/3)) // 1-5
-                    imx.setPixel(j,i,image.pixel(imx.width()/3+j,imx.height()/3+i));
-
-                if((i<imx.height()/3)&&(j>imx.width()/3)&&(j<(imx.width()/3*2))) // 2-7
-                    imx.setPixel(j,i,image.pixel(j-imx.width()/3,i+imx.height()/3*2));
-
-                if((i<imx.height()/3)&&(j>(imx.width()/3*2)))// 3-4
-                    imx.setPixel(j,i,image.pixel(j-imx.width()/3*2,imx.height()/3+i));
-
-                // TERCIO DEL MEDIO
-                if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j<imx.width()/3)) // 4-3
-                     imx.setPixel(j,i,image.pixel(imx.width()/3*2+j,i-imx.height()/3));
-
-                if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j>imx.width()/3)&&(j<(imx.width()/3*2)))//5-8
-                      imx.setPixel(j,i,image.pixel(j,imx.height()/3+i));
-
-               if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j>(imx.width()/3*2))) // 6-1
-                     imx.setPixel(j,i,image.pixel(j-imx.width()/3*2,i-imx.height()/3));
-
-                // TERCIO INFERIOR
-                if((i>imx.height()/3*2)&&(j<imx.width()/3)) //7-9
-                        imx.setPixel(j,i,image.pixel(j+imx.width()/3*2,i));
-
-                if((i>imx.height()/3*2)&&(j>imx.width()/3)&&(j<imx.width()/3*2)) // 8-6
-                        imx.setPixel(j,i,image.pixel(j+imx.width()/3,i-imx.height()/3));
-
-                if((i>imx.height()/3*2)&&(j<imx.width())&&(j>(imx.width()/3*2))) // 9-2
-                        imx.setPixel(j,i,image.pixel(j-imx.width()/3,i-imx.height()/3*2));
-
-
-        }
-     }
     QImage aux = imx;
     /*
      * aprender fondo
@@ -112,4 +75,49 @@ void Cliente::send_and_play (const QImage& image)
 void Cliente::on_Desconectar_clicked()
 {
     tcpSocket_->disconnect();
+}
+
+void Cliente::conversion(QImage &imx){
+    QImage image;
+    image=imx;
+    for(int i=1;i<imx.height()-1;i++){
+        for(int j=1;j<imx.width()-1;j++){
+
+               // |1-2-3|  -->  |5-7-4|
+               // |4-5-6|  -->  |3-8-1|
+               // |7-8-9|  -->  |9-6-2|
+               // TERCIO SUPERIOR
+               if((i<imx.height()/3)&&(j<imx.width()/3)) // 1-5
+                   imx.setPixel(j,i,image.pixel(imx.width()/3+j,imx.height()/3+i));
+
+               if((i<imx.height()/3)&&(j>imx.width()/3)&&(j<(imx.width()/3*2))) // 2-7
+                   imx.setPixel(j,i,image.pixel(j-imx.width()/3,i+imx.height()/3*2));
+
+               if((i<imx.height()/3)&&(j>(imx.width()/3*2)))// 3-4
+                   imx.setPixel(j,i,image.pixel(j-imx.width()/3*2,imx.height()/3+i));
+
+               // TERCIO DEL MEDIO
+               if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j<imx.width()/3)) // 4-3
+                    imx.setPixel(j,i,image.pixel(imx.width()/3*2+j,i-imx.height()/3));
+
+               if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j>imx.width()/3)&&(j<(imx.width()/3*2)))//5-8
+                     imx.setPixel(j,i,image.pixel(j,imx.height()/3+i));
+
+              if((i<imx.height()/3*2)&&(i>imx.height()/3)&&(j>(imx.width()/3*2))) // 6-1
+                    imx.setPixel(j,i,image.pixel(j-imx.width()/3*2,i-imx.height()/3));
+
+               // TERCIO INFERIOR
+               if((i>imx.height()/3*2)&&(j<imx.width()/3)) //7-9
+                       imx.setPixel(j,i,image.pixel(j+imx.width()/3*2,i));
+
+               if((i>imx.height()/3*2)&&(j>imx.width()/3)&&(j<imx.width()/3*2)) // 8-6
+                       imx.setPixel(j,i,image.pixel(j+imx.width()/3,i-imx.height()/3));
+
+               if((i>imx.height()/3*2)&&(j<imx.width())&&(j>(imx.width()/3*2))) // 9-2
+                       imx.setPixel(j,i,image.pixel(j-imx.width()/3,i-imx.height()/3*2));
+
+
+       }
+    }
+
 }

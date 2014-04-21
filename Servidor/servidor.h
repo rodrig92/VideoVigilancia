@@ -26,6 +26,7 @@ private slots:
     void gest_connect_in ();
     void accept ();
     void recive_and_play ();
+    void reconversion(QImage &imx);
 
 signals:
    // void error_connection ();

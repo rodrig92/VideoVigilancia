@@ -27,6 +27,7 @@ private slots:
     void send_and_play (const QImage& image);
 
     void on_Desconectar_clicked();
+    void conversion(QImage &imx);
 
 private:
     Ui::Cliente* ui_;
