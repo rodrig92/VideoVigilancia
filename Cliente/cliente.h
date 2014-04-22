@@ -31,12 +31,16 @@ private slots:
     void on_pushButton_clicked ();
     void capture ();
     void send_and_play (const QImage& image);
-
     void on_Desconectar_clicked();
     void conversion(QImage &imx);
+    void enviar (const QImage& imx);
 
 private:
     void background (QImage& fondo);
+
+signals:
+    void cambio_fondo (const QImage& fondo);
+
 private:
     Ui::Cliente* ui_;
     QTcpSocket* tcpSocket_;

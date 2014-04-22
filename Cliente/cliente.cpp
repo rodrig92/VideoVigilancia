@@ -54,13 +54,14 @@ void Cliente::send_and_play (const QImage& image)
     QImage imx;
     imx=image;
     background(imx);
-    conversion(imx);
-    QImage aux = imx;
+    //conversion(imx);
+    connect (this, SIGNAL (cambio_fondo(const QImage&)), this, SLOT (enviar (const QImage&)));
+   /* QImage aux = imx;
     /*
      * aprender fondo
      * para enviar y cifrar
      *
-     * */
+     *
     QBuffer buffer;
     aux.save (&buffer, "jpg");
     buffer.buffer().prepend("R_O_Z_I_");          //incluimos una cabecera
@@ -68,8 +69,28 @@ void Cliente::send_and_play (const QImage& image)
     //itoa(buffer.buffer().size(),s_z,10);
     buffer.buffer().prepend(s_z);
     tcpSocket_ -> write (buffer.buffer().constData(), buffer.buffer().size());
-    tcpSocket_-> connected ();
-    ui_ -> label -> setPixmap (QPixmap::fromImage (aux));
+    tcpSocket_-> connected ();*/
+    ui_ -> label -> setPixmap (QPixmap::fromImage (image));
+}
+
+void Cliente::enviar (const QImage& imx)
+{
+
+    QImage aux = imx;
+    conversion (aux);
+        /*
+         * aprender fondo
+         * para enviar y cifrar
+         *
+         **/
+        QBuffer buffer;
+        aux.save (&buffer, "jpg");
+        buffer.buffer().prepend("R_O_Z_I_");          //incluimos una cabecera
+        char s_z[5];
+        //itoa(buffer.buffer().size(),s_z,10);
+        buffer.buffer().prepend(s_z);
+        tcpSocket_ -> write (buffer.buffer().constData(), buffer.buffer().size());
+        tcpSocket_-> connected ();
 }
 
 void Cliente::on_Desconectar_clicked()
@@ -169,4 +190,6 @@ void Cliente::background (QImage& fondo)
             QRect qrect (rect.x, rect.y, rect.width, rect.height);
             vrectangulos.push_back (qrect);
         }
+
+        emit cambio_fondo (fondo);
 }

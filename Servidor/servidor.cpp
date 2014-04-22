@@ -23,7 +23,8 @@ Servidor::~Servidor ()
 
 void Servidor::on_Escuchar_clicked ()
 {
-    tcpServer_ = new QTcpServer;
+    if (tcpServer_ == NULL)
+        tcpServer_ = new QTcpServer;
     tcpServer_ -> listen (ip_, port_);
     qDebug () << "listening... ";
     connect (tcpServer_, SIGNAL (newConnection ()), this, SLOT (gest_connect_in ()));
@@ -31,7 +32,8 @@ void Servidor::on_Escuchar_clicked ()
 
 void Servidor::gest_connect_in ()
 {
-    tcpSocket_ = new QTcpSocket;
+    if (tcpSocket_ == NULL)
+        tcpSocket_ = new QTcpSocket;
     tcpSocket_ = tcpServer_ -> nextPendingConnection ();
     connect (tcpSocket_, SIGNAL (readyRead ()), this, SLOT (recive_and_play ()));
 }
@@ -77,7 +79,7 @@ void Servidor::recive_and_play ()
    // if (tcpSocket_->atEnd())
     /*if (cabecera != NULL)
         delete cabecera;*/
-    connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
+  //  connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
     }
 }
 
@@ -136,6 +138,4 @@ void Servidor::reconversion(QImage &imx){
 
        }
     }
-
-
 }
