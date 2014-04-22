@@ -8,6 +8,10 @@
 #include <string>
 #include "frames.h"
 #include <stdint.h>
+#include "opencv2/core/core.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/video/video.hpp"
+#include "cvmatandqimage.h"
 
 namespace Ui {
 class Cliente;
@@ -15,6 +19,8 @@ class Cliente;
 
 class Cliente : public QMainWindow
 {
+    cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+
     Q_OBJECT
 
 public:
@@ -30,13 +36,14 @@ private slots:
     void conversion(QImage &imx);
 
 private:
+    void background (QImage& fondo);
+private:
     Ui::Cliente* ui_;
     QTcpSocket* tcpSocket_;
     QHostAddress ip_;
     int16_t port_;
     Frames* frames_;
     QCamera* camera_;
-    QImage fondo;
 };
 
 #endif // CLIENTE_H

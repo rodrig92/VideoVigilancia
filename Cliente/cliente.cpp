@@ -54,7 +54,7 @@ void Cliente::send_and_play (const QImage& image)
     QImage imx;
     imx=image;
     conversion(imx);
-
+    background(imx);
     QImage aux = imx;
     /*
      * aprender fondo
@@ -65,7 +65,7 @@ void Cliente::send_and_play (const QImage& image)
     aux.save (&buffer, "jpg");
     buffer.buffer().prepend("R_O_Z_I_");          //incluimos una cabecera
     char s_z[5];
-    itoa(buffer.buffer().size(),s_z,10);
+    //itoa(buffer.buffer().size(),s_z,10);
     buffer.buffer().prepend(s_z);
     tcpSocket_ -> write (buffer.buffer().constData(), buffer.buffer().size());
     tcpSocket_-> connected ();
@@ -120,4 +120,53 @@ void Cliente::conversion(QImage &imx){
        }
     }
 
+}
+
+void Cliente::background (QImage& fondo)
+{
+
+    typedef QVector<cv::Mat> ImagesType;
+    typedef std::vector<std::vector<cv::Point> > ContoursType;
+
+    cv::Mat recibidamat = QtOcv::image2Mat(fondo,CV_8UC(3));
+
+    // std::vector<cv::Mat> images = <vector de imágenes en cv::Mat>
+
+        // Sustracción del fondo:
+        //  1. El objeto sustractor compara la imagen en i con su
+        //     estimación del fondo y devuelve en foregroundMask una
+        //     máscara (imagen binaria) con un 1 en los píxeles de
+        //     primer plano.
+        //  2. El objeto sustractor actualiza su estimación del fondo
+        //     usando la imagen en i.
+        cv::Mat foregroundMask;
+        backgroundSubtractor(recibidamat, foregroundMask);
+
+        // Operaciones morfolóficas para eliminar las regiones de
+        // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
+        // agrandar.
+        cv::erode(foregroundMask, foregroundMask, cv::Mat());
+        cv::dilate(foregroundMask, foregroundMask, cv::Mat());
+
+        // Obtener los contornos que bordean las regiones externas
+        // (CV_RETR_EXTERNAL) encontradas. Cada contorno es un vector
+        // de puntos y se devuelve uno por región en la máscara.
+        ContoursType contours;
+        cv::findContours(foregroundMask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, cv::Point(0,0));
+
+        // Aquí va el código ódigo que usa los contornos encontrados...
+        // P. ej. usar cv::boundingRect() para obtener el cuadro
+        // delimitador de cada uno y pintarlo en la imagen original
+
+        qRegisterMetaType < QVector<QRect> >("QVector<QRect>");
+
+        QVector<QRect> vrectangulos;
+        vrectangulos.clear();
+
+        for (ContoursType::const_iterator i = contours.begin(); i < contours.end(); ++i)
+        {
+            cv::Rect rect = cv::boundingRect(*i);
+            QRect qrect (rect.x, rect.y, rect.width, rect.height);
+            vrectangulos.push_back (qrect);
+        }
 }
