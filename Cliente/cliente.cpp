@@ -53,8 +53,8 @@ void Cliente::send_and_play (const QImage& image)
 {
     QImage imx;
     imx=image;
-    conversion(imx);
     background(imx);
+    conversion(imx);
     QImage aux = imx;
     /*
      * aprender fondo
