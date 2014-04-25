@@ -7,6 +7,8 @@
 QT       += core gui
 QT       += multimedia multimediawidgets
 QT       += network
+QT       += widgets
+QT       += sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -17,6 +19,7 @@ TEMPLATE = app
 SOURCES += main.cpp\
         servidor.cpp
 
-HEADERS  += servidor.h
+HEADERS  += servidor.h \
+    SqlLite.h
 
 FORMS    += servidor.ui

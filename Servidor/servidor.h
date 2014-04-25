@@ -37,6 +37,8 @@ private:
     QTcpSocket* tcpSocket_;
     int16_t port_;
     QHostAddress ip_;
+    int16_t rango;
+    int16_t cont_;
 };
 
 #endif // SERVIDOR_H

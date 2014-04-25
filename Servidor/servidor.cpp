@@ -1,5 +1,6 @@
 #include "servidor.h"
 #include "ui_servidor.h"
+#include "SqlLite.h"
 
 Servidor::Servidor (QWidget* parent) :
     QMainWindow (parent),
@@ -9,6 +10,12 @@ Servidor::Servidor (QWidget* parent) :
     port_ (5010),
     ip_ ("127.0.0.1")
 {
+     cont_ = 0;
+     rango = 0;
+     QStringList dataDir=QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
+     QDir dir_base(dataDir.at(0));
+     QDir::setCurrent(dir_base.absolutePath());
+
     ui_ -> setupUi (this);
 }
 
@@ -23,8 +30,7 @@ Servidor::~Servidor ()
 
 void Servidor::on_Escuchar_clicked ()
 {
-    if (tcpServer_ == NULL)
-        tcpServer_ = new QTcpServer;
+    tcpServer_ = new QTcpServer;
     tcpServer_ -> listen (ip_, port_);
     qDebug () << "listening... ";
     connect (tcpServer_, SIGNAL (newConnection ()), this, SLOT (gest_connect_in ()));
@@ -32,8 +38,7 @@ void Servidor::on_Escuchar_clicked ()
 
 void Servidor::gest_connect_in ()
 {
-    if (tcpSocket_ == NULL)
-        tcpSocket_ = new QTcpSocket;
+    tcpSocket_ = new QTcpSocket;
     tcpSocket_ = tcpServer_ -> nextPendingConnection ();
     connect (tcpSocket_, SIGNAL (readyRead ()), this, SLOT (recive_and_play ()));
 }
@@ -41,30 +46,83 @@ void Servidor::gest_connect_in ()
 void Servidor::recive_and_play ()
 {
     char tamanyo[5];
-    char cabecera[8];
+    char cab[8];
    /*char* cabecera = NULL;
     cabecera = new char[8];*/
     tcpSocket_-> read(tamanyo,5);
-    tcpSocket_ -> read (cabecera, 8);
+    tcpSocket_ -> read (cab, 8);
+
+    QString cabecera;
+    cabecera.insert(0,cab);
+    cabecera.resize(8);
+
     char* bytes = NULL;
         int sz = tcpSocket_ -> bytesAvailable ();           //leemos tamanio de la imagen
         bytes = new char[sz];
         int leidos = tcpSocket_ -> read (bytes, sz);          //recibimos la cadena
 
-    if((atoi(tamanyo)<100000)||(atoi(tamanyo)>0)){
+    if(((atoi(tamanyo)<100000)||(atoi(tamanyo)>0))&&(cabecera.operator ==("R_O_Z_I_"))){
         //transformacion de cadena a imagen
         QBuffer buffer;
         buffer.setData (bytes, leidos);
         QImageReader image;
         image.setDevice (&buffer);
         image.setFormat ("jpg");
-    //if (strcmp (cabecera, "R_O_Z_I_") == 0) {               //si la cabecera coincide leemos datos
+
         QImage pix;
-        pix = image.read ();
+        pix = image.read();
         QImage imx;
         imx=pix;
         reconversion(imx);
 
+        char *cont = NULL;
+        cont = new char[100];
+        itoa(cont_,cont,10);
+        QStringList dataDir=QStandardPaths::standardLocations(QStandardPaths::DesktopLocation);
+        QDir dir(dataDir.at(0));
+
+
+
+        // ESTABLECIENDO 100 IMAGENES POR DIRECTORIO.
+        if (rango == 0){
+            dir.mkdir(cont);
+            dir.cd(cont);
+            QDir::setCurrent(dir.absolutePath());
+            QFile file(cont);
+            file.setFileName(cont);
+            file.open(QIODevice::WriteOnly);
+            imx.save(cont,"jpg");
+            rango ++;
+        }
+        if ((rango >0)&&(rango<100)){
+            QFile file(cont);
+            file.setFileName(cont);
+            file.open(QIODevice::WriteOnly);
+            imx.save(cont,"jpg");
+            rango ++;
+        }
+
+        if (rango == 100){
+            QFile file(cont);
+            file.setFileName(cont);
+            file.open(QIODevice::WriteOnly);
+            imx.save(cont,"jpg");
+            rango=0;
+            dir.cdUp();
+         }
+        QTime temp;
+        QString tiempo;
+        tiempo = (temp.currentTime().toString());
+
+        QSqlQuery query;
+        query.prepare("INSERT INTO tabla (cliente,tiempo)"
+                      "VALUES (:cliente, :tiempo)");
+        query.bindValue(":cliente", cabecera);
+        query.bindValue(":tiempo",tiempo);
+        query.bindValue(":Frame",cont_);
+        query.exec();
+
+        cont_++;
         ui_ -> label -> setPixmap (QPixmap::fromImage (imx));
     //}
   /* else {
@@ -79,19 +137,18 @@ void Servidor::recive_and_play ()
    // if (tcpSocket_->atEnd())
     /*if (cabecera != NULL)
         delete cabecera;*/
-  //  connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
+    connect(tcpSocket_, SIGNAL (disconnected()), this, SLOT (accept ()));
     }
 }
 
 void Servidor::accept(){
-    qDebug () << "desconectado";
+   // qDebug () << "desconectado";
     if (tcpServer_ != NULL)
         tcpServer_ = NULL;
     if (tcpSocket_ != NULL)
         tcpSocket_ = NULL;
     tcpServer_ = new QTcpServer;
     tcpServer_ -> listen (ip_, port_);
-    qDebug () << "listening... ";
     connect (tcpServer_, SIGNAL (newConnection ()), this, SLOT (gest_connect_in ()));
 }
 
@@ -138,4 +195,6 @@ void Servidor::reconversion(QImage &imx){
 
        }
     }
+
+
 }
