@@ -6,6 +6,7 @@
 #include <QtNetwork>
 #include <QCamera>
 #include <string>
+#include <QImage>
 #include "frames.h"
 #include <stdint.h>
 #include "opencv2/core/core.hpp"
@@ -30,24 +31,25 @@ public:
 private slots:
     void on_pushButton_clicked ();
     void capture ();
-    void send_and_play (const QImage& image);
-    void on_Desconectar_clicked();
-    void conversion(QImage &imx);
-    void enviar (const QImage& imx);
+    void send_and_play (const QImage& imx);
+    void on_Desconectar_clicked ();
+    void conversion (QImage& imx);
+    void enviar ();
 
 private:
     void background (QImage& fondo);
+    void change_background (const QImage& img);
 
 signals:
-    void cambio_fondo (const QImage& fondo);
+    void cambio_fondo ();
 
 private:
     Ui::Cliente* ui_;
     QTcpSocket* tcpSocket_;
-    QHostAddress ip_;
-    int16_t port_;
+    QSettings* confConnect_;
     Frames* frames_;
     QCamera* camera_;
+    QImage fondo_;
 };
 
 #endif // CLIENTE_H

@@ -25,6 +25,7 @@ FORMS    += cliente.ui
 
 include(QtOpenCV.pri)
 add_opencv_modules(core video imgproc)
+#add_opencv_modules(core video imgproc, 2.4.4)
 
-unix: CONFIG += link_pkgconfig
-unix: PKGCONFIG += opencv
+#unix: CONFIG += link_pkgconfig
+#unix: PKGCONFIG += opencv
