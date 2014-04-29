@@ -7,12 +7,11 @@
 #include <QCamera>
 #include <string>
 #include <QImage>
-#include "frames.h"
 #include <stdint.h>
-#include "opencv2/core/core.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/video/video.hpp"
-#include "cvmatandqimage.h"
+#include "frames.h"
+#include "deteccionfondo.h"
+
+
 
 namespace Ui {
 class Cliente;
@@ -20,7 +19,7 @@ class Cliente;
 
 class Cliente : public QMainWindow
 {
-    cv::BackgroundSubtractorMOG2 backgroundSubtractor;
+    //cv::BackgroundSubtractorMOG2 backgroundSubtractor;
 
     Q_OBJECT
 
@@ -34,15 +33,9 @@ private slots:
     void send_and_play (const QImage& imx);
     void on_Desconectar_clicked ();
     void conversion (QImage& imx);
-    void enviar ();
-
-private:
-    void background (QImage& fondo);
-    void change_background (const QImage& img);
-
+    void enviar (const QImage& devuelta, const QVector<QRect> rectangulos);
 signals:
-    void cambio_fondo ();
-
+    void grabando (const QImage& imx);
 private:
     Ui::Cliente* ui_;
     QTcpSocket* tcpSocket_;
@@ -50,6 +43,9 @@ private:
     Frames* frames_;
     QCamera* camera_;
     QImage fondo_;
+    DeteccionFondo fondoCambio_;
+    QThread hiloFondo;
+    int cnt;
 };
 
 #endif // CLIENTE_H

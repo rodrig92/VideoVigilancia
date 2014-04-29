@@ -16,10 +16,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         cliente.cpp \
-    frames.cpp
+    frames.cpp \
+    deteccionfondo.cpp
 
 HEADERS  += cliente.h \
-    frames.h
+    frames.h \
+    deteccionfondo.h
 
 FORMS    += cliente.ui
 

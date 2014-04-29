@@ -7,7 +7,7 @@ Servidor::Servidor (QWidget* parent) :
     tcpServer_ (NULL),
     tcpSocket_ (NULL),
     confConnect_ (NULL),
-    cont_ (-1),
+    cont_ (0),
     rango_ (0),
     dataDir_ (QStandardPaths::standardLocations (QStandardPaths::DesktopLocation)),
     dirBase_ (dataDir_.at (0))
@@ -162,6 +162,10 @@ void Servidor::reconversion (QImage& imx)
 void Servidor::almacenar_metadatos (QImage& imx)
 {
     QString cont;
+    QSqlQuery consulta;
+
+    consulta.exec ("SELECT MAX(nfoto) FROM TABLE tabla");
+    qDebug () << consulta.lastQuery();
     cont.setNum (cont_);
     cont.append (".jpg");
 

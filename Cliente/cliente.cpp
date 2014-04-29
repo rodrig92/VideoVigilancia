@@ -1,5 +1,6 @@
 #include "cliente.h"
 #include "ui_cliente.h"
+#include <math.h>
 
 Cliente::Cliente (QWidget* parent) :
     QMainWindow (parent),
@@ -8,7 +9,6 @@ Cliente::Cliente (QWidget* parent) :
     confConnect_ (NULL),
     frames_ (NULL),
     camera_ (NULL),
-    backgroundSubtractor(500, 16, false),
     fondo_(NULL)
 
 {
@@ -18,14 +18,21 @@ Cliente::Cliente (QWidget* parent) :
     directory.cd("Cliente");
     QDir::setCurrent(directory.absolutePath());
     confConnect_ = new QSettings ("config.ini", QSettings::IniFormat, this);
+    cnt=0;
+    connect (this, SIGNAL (grabando (QImage)), &fondoCambio_, SLOT (background (QImage)));
+    connect (&fondoCambio_, SIGNAL (cambio_fondo (QImage, QVector<QRect>)),
+             this, SLOT (enviar (QImage, const QVector<QRect>)));
+    fondoCambio_.moveToThread (&hiloFondo);
+    hiloFondo.start ();
 
     ui_ -> setupUi (this);
-    // backgroundSubtractor.nmixtures = 3;
 }
 
 Cliente::~Cliente ()
 {
     delete ui_;
+    hiloFondo.quit ();
+    hiloFondo.wait ();
     if (tcpSocket_ != NULL)
         delete tcpSocket_;
 
@@ -68,29 +75,23 @@ void Cliente::capture ()
 }
 
 void Cliente::send_and_play (const QImage& imx)
-{
-    if (fondo_.isNull ()) {
+{  /* cnt++;
+    if (fondo_.isNull () || cnt == 30) {
         fondo_ = imx;         //guardamos el fondo
         enviar ();
+        cnt = 0;
     }
-
-
- //   change_background (imx);
- //   connect (this, SIGNAL (cambio_fondo()), this, SLOT (enviar ()));
-    // connect (tcpSocket_, SIGNAL (stateChanged(QAbstractSocket::SocketState)), this, SLOT (on_pushButton_clicked ()));
+*/
+    emit grabando (imx);
 
     ui_ -> label -> setPixmap (QPixmap::fromImage (imx));
 }
 
-void Cliente::enviar ()
+void Cliente::enviar (const QImage& devuelta, const QVector<QRect> rectangulos)
 {
-    QImage aux = fondo_;
+    QImage aux = devuelta;
     conversion (aux);       //"cifrado"
-    /*
-         * aprender fondo
-         * para enviar y cifrar
-         *
-         **/
+
     QBuffer buffer;
 
     aux.save (&buffer, "jpg");
@@ -101,28 +102,6 @@ void Cliente::enviar ()
     tcpSocket_ -> write ((const char*)& bufferSize, sizeof (bufferSize));
     tcpSocket_ -> write (buffer.buffer ().constData (), buffer.buffer ().size ());
     tcpSocket_-> connected ();
-
-}
-
-void Cliente::change_background (const QImage& img)
-{
-    int cnt = 0;
-    for (int i = 0; i < fondo_.height (); i++)
-        for (int j = 0; j < fondo_.width (); j++)
-            if ((img.pixel (j,i) <= (fondo_.pixel (j, i) + 10000000)) && (img.pixel (j,i) >= (fondo_.pixel (j, i) - 10000000)))
-                cnt--;
-            else
-                cnt++;
-
-    if (cnt > 0) {
-        fondo_ = img;
-        qDebug () << cnt;
-        emit cambio_fondo ();
-    }
-    // qDebug () << cnt;
-    qDebug () << img.pixel (156, 32);
-    qDebug () << fondo_.pixel (156, 32);
-
 
 }
 
@@ -175,56 +154,4 @@ void Cliente::conversion (QImage &imx)
         }
     }
 
-}
-
-void Cliente::background (QImage& fondo)
-{
-
-    typedef QVector<cv::Mat> ImagesType;
-    typedef std::vector<std::vector<cv::Point> > ContoursType;
-
-    cv::Mat recibidamat = QtOcv::image2Mat(fondo,CV_8UC(3));
-
-    // std::vector<cv::Mat> images = <vector de imágenes en cv::Mat>
-
-    // Sustracción del fondo:
-    //  1. El objeto sustractor compara la imagen en i con su
-    //     estimación del fondo y devuelve en foregroundMask una
-    //     máscara (imagen binaria) con un 1 en los píxeles de
-    //     primer plano.
-    //  2. El objeto sustractor actualiza su estimación del fondo
-    //     usando la imagen en i.
-    //  for (ImagesTypes::const_iterator i = images.begin(); i < images.end(); ++i) {
-    cv::Mat foregroundMask;
-    backgroundSubtractor(recibidamat, foregroundMask);
-
-    // Operaciones morfolóficas para eliminar las regiones de
-    // pequeño tamaño. Erode() las encoge y dilate() las vuelve a
-    // agrandar.
-    cv::erode(foregroundMask, foregroundMask, cv::Mat());
-    cv::dilate(foregroundMask, foregroundMask, cv::Mat());
-
-    // Obtener los contornos que bordean las regiones externas
-    // (CV_RETR_EXTERNAL) encontradas. Cada contorno es un vector
-    // de puntos y se devuelve uno por región en la máscara.
-    ContoursType contours;
-    cv::findContours(foregroundMask, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, cv::Point(0,0));
-
-    // Aquí va el código ódigo que usa los contornos encontrados...
-    // P. ej. usar cv::boundingRect() para obtener el cuadro
-    // delimitador de cada uno y pintarlo en la imagen original
-
-    qRegisterMetaType < QVector<QRect> >("QVector<QRect>");
-
-    QVector<QRect> vrectangulos;
-    vrectangulos.clear();
-    /*
-        for (ContoursType::const_iterator i = contours.begin(); i < contours.end(); ++i)
-        {
-            cv::Rect rect = cv::boundingRect(*i);
-            QRect qrect (rect.x, rect.y, rect.width, rect.height);
-            vrectangulos.push_back (qrect);
-        }
-*/
-    emit cambio_fondo ();
 }
